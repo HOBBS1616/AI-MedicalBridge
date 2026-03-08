@@ -1,0 +1,72 @@
+{
+    "chat": {
+        "welcome": "Hi, I'm your HealthBridge assistant. I'll ask a few questions to understand what's going on.",
+        "disclaimer": "This is not a diagnosis, but I'll help guide your next steps.",
+        "ready": "Ready?",
+        "thanks": "Thanks for sharing that.",
+        "urgentOptions": {
+            "consult": "Book virtual consult",
+            "download": "Download summary",
+            "restart": "Start over"
+        }
+    },
+    "questions": {
+        "chief_complaint": "What's your main symptom today? (e.g., headache, fever, cough, stomach pain)",
+        "duration": "How long has this been going on?",
+        "severity": "How severe is it right now?",
+        "associated_symptoms": "Any other symptoms? (nausea, rash, etc.)",
+        "history": "Do you have any chronic conditions or allergies?",
+        "meds": "Any current medications or supplements?",
+        "risk_factors": "Recent travel, injuries, surgeries, or sick contacts?",
+        "impact": "How is this affecting your daily life?"
+    },
+    "options": {
+        "ltDay": "Less than a day",
+        "oneToThree": "1–3 days",
+        "fourToSeven": "4–7 days",
+        "moreWeek": "More than a week",
+        "mild": "Mild",
+        "moderate": "Moderate",
+        "severe": "Severe"
+    },
+    "followups": {
+        "headache": "Is the pain on one side, both sides, or all over?",
+        "oneSide": "One side",
+        "bothSides": "Both sides",
+        "allOver": "All over",
+        "notSure": "Not sure",
+        "fever": "Have you measured your temperature? If yes, what was the highest reading?",
+        "notMeasured": "Not measured",
+        "lowGrade": "37.5–38.0°C",
+        "moderate": "38.1–39.0°C",
+        "high": ">39.0°C",
+        "cough": "Is your cough dry or producing phlegm?",
+        "dry": "Dry",
+        "productive": "Productive",
+        "abdominal": "Where is the pain mostly located?",
+        "upperRight": "Upper right",
+        "upperLeft": "Upper left",
+        "lowerRight": "Lower right",
+        "lowerLeft": "Lower left",
+        "center": "Center"
+    },
+    "summary": {
+        "summarizing": "Summarizing your answers…",
+        "title": "Here’s a quick summary:",
+        "possible": "This may relate to",
+        "notDiagnosis": "This is not a diagnosis.",
+        "noMatch": "I couldn’t confidently map a specific category. If severe or worsening, seek care. Otherwise, consider a virtual consult."
+    },
+    "scripture": {
+        "comfort": "He heals the brokenhearted and binds up their wounds."
+    },
+    "placeholders": {
+        "typeAnswer": "Type your answer..."
+    },
+    "buttons": {
+        "send": "Send"
+    },
+    "pageTitle": {
+        "symptomAnalysis": "Symptom Analysis"
+    }
+}

@@ -1,0 +1,35 @@
+{
+    "chat": {
+        "welcome": "Hola, soy tu asistente de HealthBridge. Te haré algunas preguntas para entender tu situación.",
+        "disclaimer": "Esto no es un diagnóstico, pero te ayudaré con los próximos pasos.",
+        "ready": "¿Listo?",
+        "thanks": "Gracias por compartir eso.",
+        "urgentOptions": {
+            "consult": "Reservar consulta virtual",
+            "download": "Descargar resumen",
+            "restart": "Comenzar de nuevo"
+        }
+    },
+    "questions": {
+        "chief_complaint": "¿Cuál es su síntoma principal hoy? (p.ej., dolor de cabeza, fiebre, tos, dolor de estómago)",
+        "duration": "¿Cuánto tiempo lleva así?",
+        "severity": "¿Qué tan grave es ahora?",
+        "associated_symptoms": "¿Otros síntomas? (náuseas, sarpullido, etc.)",
+        "history": "¿Tiene condiciones crónicas o alergias?",
+        "meds": "¿Toma medicamentos o suplementos?",
+        "risk_factors": "¿Viajes recientes, lesiones, cirugías o contactos enfermos?",
+        "impact": "¿Cómo afecta esto su vida diaria?"
+    },
+    "options": {
+        "ltDay": "Menos de un día",
+        "oneToThree": "1–3 días",
+        "fourToSeven": "4–7 días",
+        "moreWeek": "Más de una semana",
+        "mild": "Leve",
+        "moderate": "Moderada",
+        "severe": "Grave"
+    },
+    "scripture": {
+        "comfort": "Él sana a los quebrantados de corazón y venda sus heridas."
+    }
+}

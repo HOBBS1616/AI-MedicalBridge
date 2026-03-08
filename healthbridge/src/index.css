@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.virtua-card {
+    @apply rounded-lg bg-secondary p-5 shadow hover:shadow-lg transition;
+}
+
+.virtua-button {
+    @apply rounded-md bg-accent px-4 py-2 text-white font-medium hover:bg-accent/80;
+}
+
+.virtua-hero {
+    @apply bg-gradient-to-r from-primary to-secondary text-white py-16;
+}

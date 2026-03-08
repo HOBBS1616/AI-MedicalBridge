@@ -1,0 +1,236 @@
+[
+    {
+        "condition_id": "B50",
+        "name": "Malaria",
+        "icd_code": "B50",
+        "symptoms": [
+            {
+                "name": "fever",
+                "weight": 0.9
+            },
+            {
+                "name": "chills",
+                "weight": 0.8
+            },
+            {
+                "name": "sweating",
+                "weight": 0.7
+            },
+            {
+                "name": "headache",
+                "weight": 0.6
+            }
+        ],
+        "risk_factors": [
+            "recent travel to malaria-endemic area",
+            "mosquito exposure"
+        ],
+        "first_aid": [
+            "Stay hydrated",
+            "Rest in a cool environment",
+            "Monitor temperature regularly"
+        ],
+        "suggested_medications": [
+            {
+                "name": "Artemisinin-based combination therapy (ACT)",
+                "dosage": "As prescribed by doctor",
+                "note": "Doctor approval required"
+            }
+        ],
+        "escalation": {
+            "red_flags": [
+                "Severe anemia",
+                "Altered consciousness",
+                "Seizures"
+            ],
+            "action": "Immediate hospital referral"
+        },
+        "specialist": "Infectious Disease / General Practitioner"
+    },
+    {
+        "condition_id": "A01",
+        "name": "Typhoid Fever",
+        "icd_code": "A01",
+        "symptoms": [
+            {
+                "name": "fever",
+                "weight": 0.9
+            },
+            {
+                "name": "abdominal pain",
+                "weight": 0.8
+            },
+            {
+                "name": "constipation",
+                "weight": 0.6
+            },
+            {
+                "name": "rash",
+                "weight": 0.5
+            }
+        ],
+        "risk_factors": [
+            "contaminated food or water"
+        ],
+        "first_aid": [
+            "Drink clean fluids",
+            "Rest",
+            "Monitor temperature"
+        ],
+        "suggested_medications": [
+            {
+                "name": "Ciprofloxacin",
+                "dosage": "As prescribed by doctor",
+                "note": "Doctor approval required"
+            }
+        ],
+        "escalation": {
+            "red_flags": [
+                "Severe dehydration",
+                "Intestinal bleeding"
+            ],
+            "action": "Immediate hospital referral"
+        },
+        "specialist": "Infectious Disease / General Practitioner"
+    },
+    {
+        "condition_id": "I10",
+        "name": "Hypertension",
+        "icd_code": "I10",
+        "symptoms": [
+            {
+                "name": "headache",
+                "weight": 0.6
+            },
+            {
+                "name": "dizziness",
+                "weight": 0.7
+            },
+            {
+                "name": "blurred vision",
+                "weight": 0.5
+            }
+        ],
+        "risk_factors": [
+            "obesity",
+            "family history",
+            "high salt intake"
+        ],
+        "first_aid": [
+            "Sit and rest",
+            "Avoid stress",
+            "Reduce salt intake"
+        ],
+        "suggested_medications": [
+            {
+                "name": "Amlodipine",
+                "dosage": "As prescribed by doctor",
+                "note": "Doctor approval required"
+            }
+        ],
+        "escalation": {
+            "red_flags": [
+                "Severe chest pain",
+                "Stroke symptoms"
+            ],
+            "action": "Immediate hospital referral"
+        },
+        "specialist": "Cardiologist"
+    },
+    {
+        "condition_id": "E11",
+        "name": "Type 2 Diabetes",
+        "icd_code": "E11",
+        "symptoms": [
+            {
+                "name": "frequent urination",
+                "weight": 0.8
+            },
+            {
+                "name": "excessive thirst",
+                "weight": 0.9
+            },
+            {
+                "name": "fatigue",
+                "weight": 0.7
+            },
+            {
+                "name": "blurred vision",
+                "weight": 0.6
+            }
+        ],
+        "risk_factors": [
+            "obesity",
+            "family history",
+            "sedentary lifestyle"
+        ],
+        "first_aid": [
+            "Drink water",
+            "Avoid sugary foods",
+            "Rest"
+        ],
+        "suggested_medications": [
+            {
+                "name": "Metformin",
+                "dosage": "As prescribed by doctor",
+                "note": "Doctor approval required"
+            }
+        ],
+        "escalation": {
+            "red_flags": [
+                "Ketoacidosis symptoms",
+                "Severe dehydration"
+            ],
+            "action": "Immediate hospital referral"
+        },
+        "specialist": "Endocrinologist"
+    },
+    {
+        "condition_id": "J45",
+        "name": "Asthma",
+        "icd_code": "J45",
+        "symptoms": [
+            {
+                "name": "wheezing",
+                "weight": 0.9
+            },
+            {
+                "name": "shortness of breath",
+                "weight": 0.9
+            },
+            {
+                "name": "chest tightness",
+                "weight": 0.8
+            },
+            {
+                "name": "cough",
+                "weight": 0.7
+            }
+        ],
+        "risk_factors": [
+            "allergies",
+            "family history",
+            "smoke exposure"
+        ],
+        "first_aid": [
+            "Sit upright",
+            "Use inhaler if available",
+            "Stay calm"
+        ],
+        "suggested_medications": [
+            {
+                "name": "Salbutamol inhaler",
+                "dosage": "2 puffs as needed",
+                "note": "Doctor approval required"
+            }
+        ],
+        "escalation": {
+            "red_flags": [
+                "Severe breathing difficulty",
+                "Blue lips/face"
+            ],
+            "action": "Immediate hospital referral"
+        },
+        "specialist": "Pulmonologist"
+    }
+]
