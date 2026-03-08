@@ -2,14 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Define custom colors so Tailwind recognizes bg-accent, bg-secondary, etc. */
+@layer base {
+    :root {
+        --primary: #0f172a;
+        /* dark navy */
+        --secondary: #1e293b;
+        /* slate gray */
+        --accent: #10b981;
+        /* emerald/teal */
+    }
+}
+
+/* Custom classes using @apply */
 .virtua-card {
-    @apply rounded-lg bg-secondary p-5 shadow hover:shadow-lg transition;
+    @apply rounded-lg bg-[var(--secondary)] p-5 shadow hover:shadow-lg transition;
 }
 
 .virtua-button {
-    @apply rounded-md bg-accent px-4 py-2 text-white font-medium hover:bg-accent/80;
+    @apply rounded-md bg-[var(--accent)] px-4 py-2 text-white font-medium hover:bg-[rgba(var(--accent), 0.8)];
 }
 
 .virtua-hero {
-    @apply bg-gradient-to-r from-primary to-secondary text-white py-16;
+    @apply bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white py-16;
 }
