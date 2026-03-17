@@ -111,6 +111,9 @@ function logAudit(action, detail) {
 }
 
 // ---------------- ROUTES ----------------
+app.get("/health", (req, res) => {
+    res.json({ status: "ok" });
+});
 
 // NEW: Patient registration
 app.post("/api/patients/register", (req, res) => {
@@ -273,6 +276,6 @@ app.get("/api/audit", (req, res) => {
     res.json(auditLogs);
 });
 
-app.listen(PORT, () => {
-    console.log(`HealthBridge backend listening on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`HealthBridge backend listening on port ${PORT}`);
 });
