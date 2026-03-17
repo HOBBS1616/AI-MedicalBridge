@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import conditions from "../data/conditions.json";
+import { addNotification } from "../lib/notifications";
+import { logAudit } from "../lib/audit";
 
 type Role = "bot" | "user" | "system";
 type Message = { id: string; role: Role; text: string; choices?: string[]; done?: boolean };
@@ -16,6 +18,12 @@ type Condition = {
     suggested_medications: { name: string; dosage: string; note: string }[];
     escalation: { red_flags: string[]; action: string };
     specialist: string;
+};
+
+type AnalysisResult = {
+    diagnosis?: Condition;
+    other?: Condition[];
+    redFlag?: string;
 };
 
 type Step = {
@@ -35,6 +43,11 @@ export default function SymptomAnalysisPage() {
     const [loading, setLoading] = useState(false);
     const bottomRef = useRef<HTMLDivElement | null>(null);
     const startedRef = useRef(false);
+    const [consented, setConsented] = useState(
+        () => localStorage.getItem("hb_ai_consent") === "1"
+    );
+    const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+    const [showSummary, setShowSummary] = useState(false);
 
     // Auto-scroll
     useEffect(() => {
@@ -104,6 +117,7 @@ export default function SymptomAnalysisPage() {
 
     // Start once (guard StrictMode)
     useEffect(() => {
+        if (!consented) return;
         if (startedRef.current) return;
         startedRef.current = true;
         (async () => {
@@ -111,7 +125,7 @@ export default function SymptomAnalysisPage() {
             setCurrentId("chief_complaint");
             await streamBot(STEPS[0].bot);
         })();
-    }, [STEPS]);
+    }, [STEPS, consented]);
 
     function tokenize(text: string) {
         return text
@@ -152,6 +166,9 @@ export default function SymptomAnalysisPage() {
         const hitRedFlag = (conditions as Condition[]).find((c) =>
             c.escalation.red_flags.some((rf) => combined.includes(rf.toLowerCase()))
         );
+        const redFlagText = hitRedFlag
+            ? hitRedFlag.escalation.red_flags.find((rf) => combined.includes(rf.toLowerCase()))
+            : undefined;
 
         if (hitRedFlag) {
             await streamBot(`I’m concerned about a serious sign: "${hitRedFlag.escalation.red_flags.find((rf) =>
@@ -162,6 +179,13 @@ export default function SymptomAnalysisPage() {
         const ranked = scoreConditions(ans);
         if (!ranked.length || ranked[0].score <= 0) {
             await streamBot("I couldn’t confidently match a diagnosis. Let’s book a quick consult so a doctor can review.");
+            setAnalysis({ redFlag: redFlagText });
+            addNotification({
+                title: "Symptom analysis completed",
+                body: "A doctor review is recommended for the next step.",
+                type: "info",
+            });
+            logAudit("symptom_analysis_completed", "No confident diagnosis matched");
             return finishOptions();
         }
 
@@ -185,6 +209,13 @@ export default function SymptomAnalysisPage() {
         }
 
         await streamBot(`Recommended specialist: ${best.specialist}.`);
+        setAnalysis({ diagnosis: best, other: others, redFlag: redFlagText });
+        addNotification({
+            title: "Symptom analysis completed",
+            body: `Top match: ${best.name} (${best.icd_code}).`,
+            type: "success",
+        });
+        logAudit("symptom_analysis_completed", `Top match ${best.name}`);
 
         finishOptions();
     }
@@ -196,7 +227,7 @@ export default function SymptomAnalysisPage() {
                 id: crypto.randomUUID(),
                 role: "system",
                 text: "",
-                choices: ["Book consult", "Find pharmacy", "Download summary", "Start over"]
+                choices: ["View summary", "Print summary", "Download summary", "Book consult", "Find pharmacy", "Start over"]
             }
         ]);
         setCurrentId(null);
@@ -240,6 +271,14 @@ export default function SymptomAnalysisPage() {
             navigate("/find-doctor");
             return;
         }
+        if (choice === "View summary") {
+            setShowSummary(true);
+            return;
+        }
+        if (choice === "Print summary") {
+            printSummary();
+            return;
+        }
         if (choice === "Find pharmacy") {
             const location = window.prompt("Enter your location (area/city):");
             if (location) {
@@ -272,7 +311,95 @@ export default function SymptomAnalysisPage() {
         return `Conversation:\n${convo}\n\nYour answers:\n${answerLines}\n`;
     }
 
+    function buildSummaryHtml(ans: AnswerMap) {
+        const answerLines = Object.entries(ans)
+            .map(([k, v]) => `<li><strong>${k.replace(/_/g, " ")}:</strong> ${v}</li>`)
+            .join("");
+        const diagnosis = analysis?.diagnosis
+            ? `${analysis.diagnosis.name} (ICD: ${analysis.diagnosis.icd_code})`
+            : "Doctor review recommended";
+        const other = analysis?.other?.length
+            ? analysis.other.map((c) => `${c.name} (ICD: ${c.icd_code})`).join(", ")
+            : "None";
+        const redFlag = analysis?.redFlag ? analysis.redFlag : "None reported";
+        return `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>HealthBridge Summary</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 24px; color: #0f172a; }
+      h1 { margin-bottom: 4px; }
+      .section { margin-top: 20px; }
+      ul { padding-left: 18px; }
+      .muted { color: #475569; }
+    </style>
+  </head>
+  <body>
+    <h1>Symptom Analysis Summary</h1>
+    <div class="muted">${new Date().toLocaleString()}</div>
+    <div class="section">
+      <h2>Summary</h2>
+      <p><strong>Top match:</strong> ${diagnosis}</p>
+      <p><strong>Other possibilities:</strong> ${other}</p>
+      <p><strong>Red flags:</strong> ${redFlag}</p>
+    </div>
+    <div class="section">
+      <h2>Your answers</h2>
+      <ul>${answerLines}</ul>
+    </div>
+    <div class="section muted">
+      This summary does not replace professional medical advice.
+    </div>
+  </body>
+</html>`;
+    }
+
+    function printSummary() {
+        const html = buildSummaryHtml(answers);
+        const popup = window.open("", "_blank", "width=900,height=700");
+        if (!popup) return;
+        popup.document.write(html);
+        popup.document.close();
+        popup.focus();
+        popup.print();
+    }
+
     const curStep = useMemo(() => (currentId ? STEPS.find((s) => s.id === currentId) : undefined), [STEPS, currentId]);
+
+    if (!consented) {
+        return (
+            <div className="max-w-3xl mx-auto px-4 py-12">
+                <h1 className="text-3xl font-bold">Symptom Analysis</h1>
+                <div className="mt-6 rounded-lg border border-white/10 bg-secondary p-6 text-textSecondary">
+                    <p className="text-white font-medium">Consent & Disclaimer</p>
+                    <p className="mt-2 text-sm">
+                        This tool provides general guidance and is not a medical diagnosis. If you have
+                        severe symptoms, please seek emergency care immediately.
+                    </p>
+                    <p className="mt-2 text-sm">
+                        By continuing, you agree to use this information as educational support and not
+                        as a substitute for professional medical advice.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            localStorage.setItem("hb_ai_consent", "1");
+                            setConsented(true);
+                            addNotification({
+                                title: "Consent accepted",
+                                body: "You can now use symptom analysis.",
+                                type: "success",
+                            });
+                        }}
+                        className="mt-4 virtua-button bg-faith text-black"
+                    >
+                        I understand, continue
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-3xl mx-auto px-4 py-12">
@@ -347,6 +474,71 @@ export default function SymptomAnalysisPage() {
                         Send
                     </button>
                 </form>
+            )}
+
+            {showSummary && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/70"
+                        onClick={() => setShowSummary(false)}
+                    />
+                    <div className="relative w-full max-w-2xl rounded-lg border border-white/10 bg-secondary p-6 text-white shadow-xl">
+                        <div className="flex items-start justify-between gap-4">
+                            <h2 className="text-2xl font-semibold">Symptom Summary</h2>
+                            <button
+                                type="button"
+                                onClick={() => setShowSummary(false)}
+                                className="rounded-md border border-white/20 px-3 py-1 text-sm text-textSecondary hover:bg-white/10"
+                            >
+                                Close
+                            </button>
+                        </div>
+                        <div className="mt-3 text-sm text-textSecondary">
+                            <div>
+                                <strong className="text-white">Top match:</strong>{" "}
+                                {analysis?.diagnosis
+                                    ? `${analysis.diagnosis.name} (ICD: ${analysis.diagnosis.icd_code})`
+                                    : "Doctor review recommended"}
+                            </div>
+                            <div className="mt-2">
+                                <strong className="text-white">Other possibilities:</strong>{" "}
+                                {analysis?.other?.length
+                                    ? analysis.other.map((c) => `${c.name} (ICD: ${c.icd_code})`).join(", ")
+                                    : "None"}
+                            </div>
+                            <div className="mt-2">
+                                <strong className="text-white">Red flags:</strong>{" "}
+                                {analysis?.redFlag || "None reported"}
+                            </div>
+                        </div>
+                        <div className="mt-4">
+                            <h3 className="text-sm font-semibold text-white">Your answers</h3>
+                            <ul className="mt-2 space-y-1 text-sm text-textSecondary">
+                                {Object.entries(answers).map(([k, v]) => (
+                                    <li key={k}>
+                                        <strong className="text-white">{k.replace(/_/g, " ")}:</strong> {v}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="mt-4 flex flex-wrap gap-3">
+                            <button
+                                type="button"
+                                onClick={printSummary}
+                                className="virtua-button bg-faith text-black"
+                            >
+                                Print Summary
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowSummary(false)}
+                                className="rounded-md border border-white/20 px-4 py-2 text-sm text-textSecondary hover:bg-white/10"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

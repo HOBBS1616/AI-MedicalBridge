@@ -2,6 +2,17 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Project Layout
+
+The primary frontend lives in `healthbridge/` (this folder). There is also a
+legacy Vite-based frontend under `healthbridge/healthbridge/` which is not used
+by the current build. Keep it only if you still need it for reference.
+
+## Environment
+
+Set `REACT_APP_API_BASE_URL` to point the frontend at the backend API. If it is
+not set, the app defaults to `http://localhost:5001`.
+
 ## Available Scripts
 
 In the project directory, you can run:

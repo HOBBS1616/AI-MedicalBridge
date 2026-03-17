@@ -7,7 +7,7 @@ export default function GetCareNowPage() {
         {
             title: "Telehealth",
             desc: "Connect with a doctor online.",
-            action: () => navigate("/register?source=telehealth")
+            action: () => navigate("/appointments")
         },
         {
             title: "Emergency",
@@ -23,7 +23,7 @@ export default function GetCareNowPage() {
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-12">
-            <h1 className="text-3xl font-bold text-black">Get Care Now</h1>
+            <h1 className="text-3xl font-bold">Get Care Now</h1>
             <p className="mt-2 text-faith">
                 "Is anyone among you sick? Let them call the elders..." – James 5:14-15
             </p>
@@ -32,7 +32,7 @@ export default function GetCareNowPage() {
                     <button
                         key={o.title}
                         onClick={o.action}
-                        className="virtua-card text-left w-full p-4 border rounded shadow hover:bg-gray-100"
+                        className="virtua-card text-left w-full"
                     >
                         <h3 className="font-medium">{o.title}</h3>
                         <p className="mt-2 text-sm text-textSecondary">{o.desc}</p>

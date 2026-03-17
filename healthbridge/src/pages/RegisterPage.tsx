@@ -1,5 +1,9 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import { API_BASE_URL } from "../lib/api";
+import { addNotification } from "../lib/notifications";
+import { logAudit } from "../lib/audit";
+import { setCurrentUser } from "../lib/auth";
 
 export default function RegisterPage() {
     const [params] = useSearchParams();
@@ -13,16 +17,40 @@ export default function RegisterPage() {
         setErrorMessage("");
 
         const form = e.target as HTMLFormElement;
-        const data = Object.fromEntries(new FormData(form));
+        const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+        const payload: Record<string, string | number> = { ...data };
+
+        if (data.age === "") {
+            delete payload.age;
+        } else if (data.age !== undefined) {
+            payload.age = Number(data.age);
+        }
+
+        if (!data.preferredTime) {
+            delete payload.preferredTime;
+        }
 
         try {
-            const response = await fetch("http://localhost:5001/api/patients/register", {
+            const response = await fetch(`${API_BASE_URL}/api/patients/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
+                body: JSON.stringify(payload),
             });
 
             if (response.ok) {
+                const body = await response.json();
+                const patientName = body?.patient?.name || data.name || "Patient";
+                setCurrentUser({
+                    name: patientName,
+                    email: String(data.email || ""),
+                    role: "patient",
+                });
+                addNotification({
+                    title: "New patient registered",
+                    body: `${patientName} was added to the registry.`,
+                    type: "success",
+                });
+                logAudit("patient_registered", `${patientName} registered via intake form`);
                 navigate("/patients?success=1");
             } else {
                 const err = await response.json();
@@ -74,11 +102,14 @@ export default function RegisterPage() {
                     className="rounded-md bg-white/5 border border-white/20 px-4 py-3"
                 />
                 <input
+                    required
                     name="phone"
+                    type="tel"
                     placeholder="Phone"
                     className="rounded-md bg-white/5 border border-white/20 px-4 py-3"
                 />
                 <textarea
+                    required
                     name="symptoms"
                     placeholder="Describe your symptoms"
                     className="rounded-md bg-white/5 border border-white/20 px-4 py-3 md:col-span-2"

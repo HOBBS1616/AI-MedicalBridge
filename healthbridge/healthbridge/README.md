@@ -1,5 +1,11 @@
 # React + TypeScript + Vite
 
+## Legacy Frontend (Not Active)
+
+This Vite app is a legacy frontend kept for reference. The active frontend is
+the Create React App in `healthbridge/`. If you no longer need this, it can be
+archived or removed.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

@@ -1,19 +1,76 @@
-// src/pages/RegisterPage.tsx
-import { useNavigate, useSearchParams } from "react-router-dom";
-export default function RegisterPage() {
-    const [params] = useSearchParams();
-    const navigate = useNavigate();
-    const onSubmit = (e: React.FormEvent) => { e.preventDefault(); const data = Object.fromEntries(new FormData(e.target as HTMLFormElement)); localStorage.setItem("hb_user", JSON.stringify(data)); navigate(params.get("next") || "/dashboard"); };
+import { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
+import { API_BASE_URL } from "../lib/api";
+import { getCurrentUser } from "../lib/auth";
+
+type Patient = {
+    patientId: string;
+    name: string;
+    email: string;
+    phone: string;
+    symptoms: string;
+    preferredTime?: string;
+    registeredAt: string;
+};
+
+export default function PatientRecordsPage() {
+    const user = getCurrentUser();
+    const [patients, setPatients] = useState<Patient[]>([]);
+
+    useEffect(() => {
+        if (user?.role !== "admin") return;
+        fetch(`${API_BASE_URL}/api/patients`)
+            .then((res) => res.json())
+            .then((data) => setPatients(data))
+            .catch((err) => console.error("Error fetching patients:", err));
+    }, [user?.role]);
+
+    if (user?.role !== "admin") {
+        return (
+            <div className="max-w-4xl mx-auto px-4 py-12">
+                <h1 className="text-3xl font-bold">Patient Records</h1>
+                <p className="mt-2 text-textSecondary">
+                    Admin access only. Please sign in with an admin role to view records.
+                </p>
+                <NavLink to="/login" className="mt-4 inline-block virtua-button bg-faith text-black">
+                    Sign in as Admin
+                </NavLink>
+            </div>
+        );
+    }
+
     return (
-        <div className="container py-12">
-            <h1 className="section-title">Create your account</h1>
-            <form onSubmit={onSubmit} className="mt-6 card p-6 grid gap-4 md:grid-cols-2">
-                <input required name="name" className="rounded-md bg-white/5 border border-white/20 px-4 py-3" placeholder="Full name" />
-                <input required name="email" type="email" className="rounded-md bg-white/5 border border-white/20 px-4 py-3" placeholder="Email" />
-                <input name="age" type="number" className="rounded-md bg-white/5 border border-white/20 px-4 py-3" placeholder="Age" />
-                <input name="phone" className="rounded-md bg-white/5 border border-white/20 px-4 py-3" placeholder="Phone" />
-                <button className="cta-btn md:col-span-2">Create account</button>
-            </form>
+        <div className="max-w-6xl mx-auto px-4 py-12">
+            <h1 className="text-3xl font-bold">Patient Records</h1>
+            <p className="mt-2 text-textSecondary">Administrative view of registered patient information.</p>
+            <div className="mt-6 overflow-x-auto rounded-lg border border-white/10 bg-secondary">
+                <table className="min-w-full text-sm">
+                    <thead className="bg-primary text-white">
+                        <tr>
+                            <th className="px-4 py-3 text-left">Name</th>
+                            <th className="px-4 py-3 text-left">Email</th>
+                            <th className="px-4 py-3 text-left">Phone</th>
+                            <th className="px-4 py-3 text-left">Symptoms</th>
+                            <th className="px-4 py-3 text-left">Preferred Time</th>
+                            <th className="px-4 py-3 text-left">Registered At</th>
+                        </tr>
+                    </thead>
+                    <tbody className="text-white">
+                        {patients.map((p) => (
+                            <tr key={p.patientId} className="border-t border-white/10">
+                                <td className="px-4 py-3 font-medium">{p.name}</td>
+                                <td className="px-4 py-3 text-textSecondary">{p.email}</td>
+                                <td className="px-4 py-3 text-textSecondary">{p.phone}</td>
+                                <td className="px-4 py-3">{p.symptoms}</td>
+                                <td className="px-4 py-3 text-textSecondary">{p.preferredTime || "-"}</td>
+                                <td className="px-4 py-3 text-textSecondary">
+                                    {new Date(p.registeredAt).toLocaleString()}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }

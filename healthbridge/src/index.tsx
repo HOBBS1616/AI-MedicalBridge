@@ -17,6 +17,13 @@ import VirtualConsultPage from "./pages/VirtualConsultPage";
 import RegisterPage from "./pages/RegisterPage";
 import PatientRecordsPage from "./pages/PatientRecordsPage";
 import DashboardPage from "./pages/DashboardPage";
+import PatientListPage from "./pages/PatientListPage";
+import LoginPage from "./pages/LoginPage";
+import AppointmentsPage from "./pages/AppointmentsPage";
+import MessagesPage from "./pages/MessagesPage";
+import ClinicianPage from "./pages/ClinicianPage";
+import DeliveryTrackingPage from "./pages/DeliveryTrackingPage";
+import PrivacyPage from "./pages/PrivacyPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -33,8 +40,15 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="about" element={<AboutUsPage />} />
           <Route path="virtual-consult" element={<VirtualConsultPage />} />
           <Route path="register" element={<RegisterPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="patients" element={<PatientListPage />} />
           <Route path="records" element={<PatientRecordsPage />} />
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="appointments" element={<AppointmentsPage />} />
+          <Route path="messages" element={<MessagesPage />} />
+          <Route path="clinician" element={<ClinicianPage />} />
+          <Route path="delivery" element={<DeliveryTrackingPage />} />
+          <Route path="privacy" element={<PrivacyPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

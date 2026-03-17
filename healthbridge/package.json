@@ -24,6 +24,7 @@
   },
   "scripts": {
     "start": "cross-env NODE_OPTIONS=--max-old-space-size=8192 react-scripts start",
+    "start:lowmem": "cross-env NODE_OPTIONS=--max-old-space-size=2048 FORK_TS_CHECKER_MEMORY_LIMIT=1024 DISABLE_ESLINT_PLUGIN=true react-scripts start",
     "build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

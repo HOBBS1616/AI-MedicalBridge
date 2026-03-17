@@ -4,8 +4,12 @@ import cors from "cors";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import Joi from "joi";
+import path from "path";
+import { fileURLToPath } from "url";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 app.use(express.json());
@@ -19,6 +23,7 @@ const PORT = process.env.PORT || 5001;
 const approvals = new Map(); // key: patientId -> approval record
 const pharmacyRequests = new Map(); // key: requestId -> pharmacy request
 const patients = new Map(); // key: patientId -> patient record
+const auditLogs = []; // in-memory audit log
 
 // Create mail transporter (uses Ethereal dev inbox if SMTP not configured)
 async function createTransporter() {
@@ -30,15 +35,20 @@ async function createTransporter() {
             auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
         });
     }
-    const testAccount = await nodemailer.createTestAccount();
-    const t = nodemailer.createTransport({
-        host: testAccount.smtp.host,
-        port: testAccount.smtp.port,
-        secure: testAccount.smtp.secure,
-        auth: { user: testAccount.user, pass: testAccount.pass }
-    });
-    console.log("Ethereal test account created:", testAccount.user);
-    return t;
+    try {
+        const testAccount = await nodemailer.createTestAccount();
+        const t = nodemailer.createTransport({
+            host: testAccount.smtp.host,
+            port: testAccount.smtp.port,
+            secure: testAccount.smtp.secure,
+            auth: { user: testAccount.user, pass: testAccount.pass }
+        });
+        console.log("Ethereal test account created:", testAccount.user);
+        return t;
+    } catch (err) {
+        console.warn("Email disabled: failed to create test account.", err?.message || err);
+        return nodemailer.createTransport({ jsonTransport: true });
+    }
 }
 
 const transporterPromise = createTransporter();
@@ -80,6 +90,7 @@ const patientSchema = Joi.object({
     name: Joi.string().required(),
     email: Joi.string().email().required(),
     phone: Joi.string().required(),
+    age: Joi.number().integer().min(0).max(120).optional().empty(""),
     symptoms: Joi.string().required(),
     preferredTime: Joi.string().optional()
 });
@@ -87,6 +98,16 @@ const patientSchema = Joi.object({
 // Utilities
 function id() {
     return Math.random().toString(36).slice(2);
+}
+
+function logAudit(action, detail) {
+    auditLogs.unshift({
+        id: id(),
+        action,
+        detail,
+        createdAt: new Date().toISOString()
+    });
+    if (auditLogs.length > 200) auditLogs.pop();
 }
 
 // ---------------- ROUTES ----------------
@@ -100,6 +121,7 @@ app.post("/api/patients/register", (req, res) => {
     const record = { patientId, ...value, registeredAt: new Date().toISOString() };
 
     patients.set(patientId, record);
+    logAudit("patient_registered", `${record.name} (${patientId}) registered`);
 
     return res.status(201).json({
         message: "Patient registered successfully",
@@ -130,6 +152,7 @@ app.post("/api/prescriptions/approve", async (req, res) => {
     };
 
     approvals.set(patientId, record);
+    logAudit("prescription_approved", `Prescription approved for patient ${patientId}`);
     return res.json({
         status: "approved",
         ...record
@@ -167,6 +190,7 @@ app.post("/api/pharmacy/notify", async (req, res) => {
         expectedDelivery
     };
     pharmacyRequests.set(requestId, request);
+    logAudit("pharmacy_notified", `Pharmacy request ${requestId} created for patient ${patientId}`);
 
     // Send email
     const transporter = await transporterPromise;
@@ -222,6 +246,7 @@ app.post("/api/pharmacy/confirm", async (req, res) => {
 
     found.status = status;
     if (deliveryETA) found.expectedDelivery = deliveryETA;
+    logAudit("pharmacy_confirmed", `Pharmacy ${pharmacyId} ${status} for patient ${patientId}`);
 
     return res.json({
         status: "confirmed",
@@ -242,6 +267,10 @@ app.get("/api/debug/approvals", (req, res) => {
 
 app.get("/api/debug/pharmacy-requests", (req, res) => {
     res.json([...pharmacyRequests.values()]);
+});
+
+app.get("/api/audit", (req, res) => {
+    res.json(auditLogs);
 });
 
 app.listen(PORT, () => {

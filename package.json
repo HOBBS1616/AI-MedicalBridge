@@ -2,10 +2,10 @@
   "name": "healthbridge-backend",
   "version": "1.0.0",
   "type": "module",
-  "main": "server.js",
+  "main": "healthbridge-backend/server.js",
   "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node server.js"
+    "dev": "nodemon healthbridge-backend/server.js",
+    "start": "node healthbridge-backend/server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
