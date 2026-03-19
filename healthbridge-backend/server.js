@@ -6,6 +6,7 @@ import nodemailer from "nodemailer";
 import Joi from "joi";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs/promises";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,12 +19,17 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
 app.use(cors({ origin: CORS_ORIGIN }));
 
 const PORT = process.env.PORT || 5001;
+const DATA_PATH = path.join(__dirname, "data.json");
 
 // In-memory stores (replace with DB later)
 const approvals = new Map(); // key: patientId -> approval record
 const pharmacyRequests = new Map(); // key: requestId -> pharmacy request
 const patients = new Map(); // key: patientId -> patient record
 const auditLogs = []; // in-memory audit log
+const authCodes = new Map(); // email -> { email, code, expiresAt, name }
+const sessions = new Map(); // token -> { email, name, role }
+const errorLogs = [];
+const subscriptions = [];
 
 // Create mail transporter (uses Ethereal dev inbox if SMTP not configured)
 async function createTransporter() {
@@ -85,6 +91,29 @@ const pharmacyConfirmSchema = Joi.object({
     deliveryETA: Joi.string().optional()
 });
 
+const authRequestSchema = Joi.object({
+    email: Joi.string().email().required(),
+    name: Joi.string().allow("").optional()
+});
+
+const authVerifySchema = Joi.object({
+    email: Joi.string().email().required(),
+    code: Joi.string().required(),
+    name: Joi.string().allow("").optional()
+});
+
+const errorSchema = Joi.object({
+    id: Joi.string().optional(),
+    message: Joi.string().required(),
+    stack: Joi.string().allow("").optional(),
+    source: Joi.string().allow("").optional(),
+    createdAt: Joi.string().optional()
+});
+
+const subscriptionSchema = Joi.object({
+    email: Joi.string().email().required()
+});
+
 // NEW: Patient registration schema
 const patientSchema = Joi.object({
     name: Joi.string().required(),
@@ -100,6 +129,49 @@ function id() {
     return Math.random().toString(36).slice(2);
 }
 
+let persistTimer = null;
+
+async function loadState() {
+    try {
+        const raw = await fs.readFile(DATA_PATH, "utf-8");
+        const data = JSON.parse(raw);
+        (data.patients || []).forEach((record) => patients.set(record.patientId, record));
+        (data.approvals || []).forEach((record) => approvals.set(record.patientId, record));
+        (data.pharmacyRequests || []).forEach((record) => pharmacyRequests.set(record.requestId, record));
+        (data.auditLogs || []).forEach((record) => auditLogs.push(record));
+        (data.errorLogs || []).forEach((record) => errorLogs.push(record));
+        (data.subscriptions || []).forEach((record) => subscriptions.push(record));
+        (data.authCodes || []).forEach((record) => authCodes.set(record.email, record));
+        console.log("Persisted backend data loaded.");
+    } catch (err) {
+        console.log("No persisted data found. Starting fresh.");
+    }
+}
+
+async function persistState() {
+    const data = {
+        patients: [...patients.values()],
+        approvals: [...approvals.values()],
+        pharmacyRequests: [...pharmacyRequests.values()],
+        auditLogs,
+        errorLogs,
+        subscriptions,
+        authCodes: [...authCodes.values()],
+    };
+    try {
+        await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2));
+    } catch (err) {
+        console.warn("Failed to persist data:", err?.message || err);
+    }
+}
+
+function schedulePersist() {
+    if (persistTimer) clearTimeout(persistTimer);
+    persistTimer = setTimeout(() => {
+        persistState();
+    }, 250);
+}
+
 function logAudit(action, detail) {
     auditLogs.unshift({
         id: id(),
@@ -108,6 +180,7 @@ function logAudit(action, detail) {
         createdAt: new Date().toISOString()
     });
     if (auditLogs.length > 200) auditLogs.pop();
+    schedulePersist();
 }
 
 // ---------------- ROUTES ----------------
@@ -125,6 +198,7 @@ app.post("/api/patients/register", (req, res) => {
 
     patients.set(patientId, record);
     logAudit("patient_registered", `${record.name} (${patientId}) registered`);
+    schedulePersist();
 
     return res.status(201).json({
         message: "Patient registered successfully",
@@ -135,6 +209,75 @@ app.post("/api/patients/register", (req, res) => {
 // Optional: list all patients (for testing)
 app.get("/api/patients", (req, res) => {
     res.json([...patients.values()]);
+});
+
+// Auth: request email code
+app.post("/api/auth/request-code", async (req, res) => {
+    const { error, value } = authRequestSchema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.message });
+    const { email, name } = value;
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000;
+    authCodes.set(email, { email, code, expiresAt, name });
+    schedulePersist();
+
+    const transporter = await transporterPromise;
+    const toEmail = email;
+    const subject = "Your HealthBridge sign-in code";
+    const text = `Use this code to sign in: ${code}`;
+    try {
+        await transporter.sendMail({
+            from: '"HealthBridge" <no-reply@healthbridge.local>',
+            to: toEmail,
+            subject,
+            text
+        });
+        return res.json({ sent: true });
+    } catch (err) {
+        console.warn("Email failed, returning dev code.", err?.message || err);
+        return res.json({ sent: false, code });
+    }
+});
+
+app.post("/api/auth/verify-code", (req, res) => {
+    const { error, value } = authVerifySchema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.message });
+    const { email, code, name } = value;
+    const record = authCodes.get(email);
+    if (!record || record.code !== code || record.expiresAt < Date.now()) {
+        return res.status(401).json({ error: "Invalid or expired code" });
+    }
+    authCodes.delete(email);
+    const adminEmails = (process.env.ADMIN_EMAILS || "")
+        .split(",")
+        .map((item) => item.trim().toLowerCase())
+        .filter(Boolean);
+    const doctorEmails = (process.env.DOCTOR_EMAILS || "")
+        .split(",")
+        .map((item) => item.trim().toLowerCase())
+        .filter(Boolean);
+    const normalized = email.toLowerCase();
+    const role = adminEmails.includes(normalized)
+        ? "admin"
+        : doctorEmails.includes(normalized)
+            ? "doctor"
+            : "patient";
+    const token = id();
+    sessions.set(token, { email, name: name || record.name || "Patient", role });
+    schedulePersist();
+    return res.json({
+        token,
+        user: { name: name || record.name || "Patient", email, role }
+    });
+});
+
+app.get("/api/auth/me", (req, res) => {
+    const auth = req.headers.authorization || "";
+    const token = auth.startsWith("Bearer ") ? auth.replace("Bearer ", "") : null;
+    if (!token || !sessions.has(token)) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    return res.json({ user: sessions.get(token) });
 });
 
 // Doctor approves a prescription
@@ -156,6 +299,7 @@ app.post("/api/prescriptions/approve", async (req, res) => {
 
     approvals.set(patientId, record);
     logAudit("prescription_approved", `Prescription approved for patient ${patientId}`);
+    schedulePersist();
     return res.json({
         status: "approved",
         ...record
@@ -194,6 +338,7 @@ app.post("/api/pharmacy/notify", async (req, res) => {
     };
     pharmacyRequests.set(requestId, request);
     logAudit("pharmacy_notified", `Pharmacy request ${requestId} created for patient ${patientId}`);
+    schedulePersist();
 
     // Send email
     const transporter = await transporterPromise;
@@ -250,6 +395,7 @@ app.post("/api/pharmacy/confirm", async (req, res) => {
     found.status = status;
     if (deliveryETA) found.expectedDelivery = deliveryETA;
     logAudit("pharmacy_confirmed", `Pharmacy ${pharmacyId} ${status} for patient ${patientId}`);
+    schedulePersist();
 
     return res.json({
         status: "confirmed",
@@ -276,6 +422,42 @@ app.get("/api/audit", (req, res) => {
     res.json(auditLogs);
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`HealthBridge backend listening on port ${PORT}`);
+app.post("/api/errors", (req, res) => {
+    const { error, value } = errorSchema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.message });
+    errorLogs.unshift({
+        id: value.id || id(),
+        message: value.message,
+        stack: value.stack,
+        source: value.source,
+        createdAt: value.createdAt || new Date().toISOString()
+    });
+    if (errorLogs.length > 200) errorLogs.pop();
+    schedulePersist();
+    res.json({ status: "logged" });
 });
+
+app.get("/api/errors", (req, res) => {
+    res.json(errorLogs);
+});
+
+app.post("/api/subscriptions", (req, res) => {
+    const { error, value } = subscriptionSchema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.message });
+    const exists = subscriptions.find((item) => item.email === value.email);
+    if (!exists) {
+        subscriptions.unshift({ email: value.email, createdAt: new Date().toISOString() });
+        if (subscriptions.length > 500) subscriptions.pop();
+        schedulePersist();
+    }
+    res.json({ status: "subscribed" });
+});
+
+async function start() {
+    await loadState();
+    app.listen(PORT, "0.0.0.0", () => {
+        console.log(`HealthBridge backend listening on port ${PORT}`);
+    });
+}
+
+start();

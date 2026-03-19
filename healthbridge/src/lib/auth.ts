@@ -5,6 +5,7 @@ export type UserProfile = {
     name: string;
     email: string;
     role: Role;
+    token?: string;
 };
 
 const USER_KEY = "hb_user";
@@ -20,6 +21,10 @@ export function getCurrentUser(): UserProfile | null {
 export function setCurrentUser(profile: UserProfile) {
     setJson(USER_KEY, profile);
     emitAuthUpdate();
+}
+
+export function getAuthToken() {
+    return getCurrentUser()?.token;
 }
 
 export function clearCurrentUser() {

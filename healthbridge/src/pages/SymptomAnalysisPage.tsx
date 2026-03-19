@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import conditions from "../data/conditions.json";
 import { addNotification } from "../lib/notifications";
 import { logAudit } from "../lib/audit";
+import { getJson, setJson } from "../lib/storage";
 
 type Role = "bot" | "user" | "system";
 type Message = { id: string; role: Role; text: string; choices?: string[]; done?: boolean };
@@ -24,6 +25,18 @@ type AnalysisResult = {
     diagnosis?: Condition;
     other?: Condition[];
     redFlag?: string;
+};
+
+type SymptomLog = {
+    id: string;
+    createdAt: string;
+    chiefComplaint: string;
+    severity: string;
+    summary: string;
+    diagnosis?: string;
+    redFlag?: string;
+    patientName?: string;
+    email?: string;
 };
 
 type Step = {
@@ -48,6 +61,7 @@ export default function SymptomAnalysisPage() {
     );
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
     const [showSummary, setShowSummary] = useState(false);
+    const profile = getJson<{ name?: string; email?: string }>("hb_patient_profile", {});
 
     // Auto-scroll
     useEffect(() => {
@@ -186,6 +200,10 @@ export default function SymptomAnalysisPage() {
                 type: "info",
             });
             logAudit("symptom_analysis_completed", "No confident diagnosis matched");
+            saveSymptomLog(ans, {
+                summary: "Doctor review recommended",
+                redFlag: redFlagText,
+            });
             return finishOptions();
         }
 
@@ -216,6 +234,11 @@ export default function SymptomAnalysisPage() {
             type: "success",
         });
         logAudit("symptom_analysis_completed", `Top match ${best.name}`);
+        saveSymptomLog(ans, {
+            summary: `${best.name} (${best.icd_code})`,
+            diagnosis: best.name,
+            redFlag: redFlagText,
+        });
 
         finishOptions();
     }
@@ -232,6 +255,23 @@ export default function SymptomAnalysisPage() {
         ]);
         setCurrentId(null);
         setLoading(false);
+    }
+
+    function saveSymptomLog(ans: AnswerMap, result: { summary: string; diagnosis?: string; redFlag?: string }) {
+        const logs = getJson<SymptomLog[]>("hb_symptom_logs", []);
+        const entry: SymptomLog = {
+            id: crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+            createdAt: new Date().toISOString(),
+            chiefComplaint: ans.chief_complaint || "",
+            severity: ans.severity || "",
+            summary: result.summary,
+            diagnosis: result.diagnosis,
+            redFlag: result.redFlag,
+            patientName: profile.name || "Guest patient",
+            email: profile.email,
+        };
+        logs.unshift(entry);
+        setJson("hb_symptom_logs", logs.slice(0, 200));
     }
 
     async function handleAnswer(value: string) {

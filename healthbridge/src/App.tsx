@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Logo from "./components/Logo";
 import NotificationsPanel from "./components/NotificationsPanel";
+import StatusBanner from "./components/StatusBanner";
+import ContactButtons from "./components/ContactButtons";
 import { clearCurrentUser, getCurrentUser } from "./lib/auth";
 
 type NavItem = {
@@ -31,11 +33,15 @@ export default function App() {
     () => [
       { to: "/patients-visitors", label: "Patients & Visitors" },
       { to: "/about", label: "About" },
+      { to: "/patient-profile", label: "Care Plan" },
+      { to: "/triage", label: "Triage Board" },
       { to: "/patients", label: "Patients" },
       { to: "/appointments", label: "Appointments" },
       { to: "/messages", label: "Messages" },
       { to: "/clinician", label: "Clinician" },
       { to: "/delivery", label: "Delivery" },
+      { to: "/faq-pricing", label: "FAQ & Pricing" },
+      { to: "/share", label: "Share" },
       { to: "/privacy", label: "Privacy" },
     ],
     []
@@ -69,7 +75,8 @@ export default function App() {
       >
         Skip to content
       </a>
-      <header className="border-b border-white/10 bg-primary/95 backdrop-blur">
+      <StatusBanner />
+      <header className="border-b border-white/10 bg-primary backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex-shrink-0">
@@ -153,6 +160,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+      <ContactButtons />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./index.css";
 import App from "./App";
+import { initErrorTracking } from "./lib/errorTracking";
 
 import HomePage from "./pages/HomePage";
 import SymptomAnalysisPage from "./pages/SymptomAnalysisPage";
@@ -24,6 +25,13 @@ import MessagesPage from "./pages/MessagesPage";
 import ClinicianPage from "./pages/ClinicianPage";
 import DeliveryTrackingPage from "./pages/DeliveryTrackingPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import PatientProfilePage from "./pages/PatientProfilePage";
+import TriageBoardPage from "./pages/TriageBoardPage";
+import FaqPricingPage from "./pages/FaqPricingPage";
+import SharePage from "./pages/SharePage";
+import RequireRole from "./components/RequireRole";
+
+initErrorTracking();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -42,13 +50,38 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="register" element={<RegisterPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="patients" element={<PatientListPage />} />
-          <Route path="records" element={<PatientRecordsPage />} />
+          <Route
+            path="records"
+            element={
+              <RequireRole roles={["admin"]}>
+                <PatientRecordsPage />
+              </RequireRole>
+            }
+          />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="appointments" element={<AppointmentsPage />} />
           <Route path="messages" element={<MessagesPage />} />
-          <Route path="clinician" element={<ClinicianPage />} />
+          <Route
+            path="clinician"
+            element={
+              <RequireRole roles={["doctor", "admin"]}>
+                <ClinicianPage />
+              </RequireRole>
+            }
+          />
           <Route path="delivery" element={<DeliveryTrackingPage />} />
           <Route path="privacy" element={<PrivacyPage />} />
+          <Route path="patient-profile" element={<PatientProfilePage />} />
+          <Route
+            path="triage"
+            element={
+              <RequireRole roles={["doctor", "admin"]}>
+                <TriageBoardPage />
+              </RequireRole>
+            }
+          />
+          <Route path="faq-pricing" element={<FaqPricingPage />} />
+          <Route path="share" element={<SharePage />} />
         </Route>
       </Routes>
     </BrowserRouter>

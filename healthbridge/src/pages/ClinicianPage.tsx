@@ -28,6 +28,40 @@ export default function ClinicianPage() {
     const [doctor, setDoctor] = useState(user?.name || "");
     const [medications, setMedications] = useState<Medication[]>([{ name: "", dosage: "" }]);
     const [status, setStatus] = useState("");
+    const [templateId, setTemplateId] = useState("");
+
+    const templates = [
+        {
+            id: "flu",
+            label: "Seasonal Flu Care Pack",
+            diagnosis: "Influenza",
+            icd: "J10.1",
+            notes: "Encourage rest, hydration, and monitor temperature.",
+            meds: [
+                { name: "Paracetamol", dosage: "500mg every 6-8 hours" },
+                { name: "Vitamin C", dosage: "1000mg daily" },
+            ],
+        },
+        {
+            id: "bp",
+            label: "Hypertension Follow-up",
+            diagnosis: "Essential hypertension",
+            icd: "I10",
+            notes: "Reinforce low-sodium diet and daily BP logs.",
+            meds: [{ name: "Amlodipine", dosage: "5mg daily" }],
+        },
+        {
+            id: "gi",
+            label: "Gastrointestinal Support",
+            diagnosis: "Acute gastritis",
+            icd: "K29.00",
+            notes: "Recommend light diet and avoid irritants.",
+            meds: [
+                { name: "Omeprazole", dosage: "20mg daily" },
+                { name: "ORS", dosage: "After each loose stool" },
+            ],
+        },
+    ];
 
     useEffect(() => {
         fetch(`${API_BASE_URL}/api/patients`)
@@ -53,6 +87,16 @@ export default function ClinicianPage() {
 
     const removeMedicationRow = (index: number) => {
         setMedications((prev) => prev.filter((_, idx) => idx !== index));
+    };
+
+    const applyTemplate = (id: string) => {
+        const template = templates.find((t) => t.id === id);
+        if (!template) return;
+        setTemplateId(id);
+        setDiagnosis(template.diagnosis);
+        setIcdCode(template.icd);
+        setNotes(template.notes);
+        setMedications(template.meds);
     };
 
     const submit = async (event: React.FormEvent) => {
@@ -134,6 +178,21 @@ export default function ClinicianPage() {
             </p>
 
             <form onSubmit={submit} className="mt-6 grid gap-4 rounded-lg border border-white/10 bg-secondary p-6">
+                <div className="grid gap-2">
+                    <label className="text-sm text-textSecondary">Prescription template</label>
+                    <select
+                        value={templateId}
+                        onChange={(e) => applyTemplate(e.target.value)}
+                        className="rounded-md bg-primary border border-white/20 px-3 py-2 text-white"
+                    >
+                        <option value="">Select template (optional)</option>
+                        {templates.map((template) => (
+                            <option key={template.id} value={template.id}>
+                                {template.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                     <div className="grid gap-2">
                         <label className="text-sm text-textSecondary">Patient</label>

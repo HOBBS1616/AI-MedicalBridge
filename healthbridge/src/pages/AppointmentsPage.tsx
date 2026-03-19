@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { addNotification } from "../lib/notifications";
 import { getJson, setJson } from "../lib/storage";
 import { logAudit } from "../lib/audit";
@@ -14,6 +14,7 @@ type Appointment = {
 };
 
 const KEY = "hb_appointments";
+const PREFILL_KEY = "hb_prefill_appointment";
 
 export default function AppointmentsPage() {
     const [appointments, setAppointments] = useState<Appointment[]>(
@@ -28,6 +29,27 @@ export default function AppointmentsPage() {
     });
 
     const upcoming = useMemo(() => appointments, [appointments]);
+    const lastAppointment = useMemo(() => {
+        if (!appointments.length) return null;
+        return [...appointments].sort(
+            (a, b) => new Date(b.date || "").getTime() - new Date(a.date || "").getTime()
+        )[0];
+    }, [appointments]);
+
+    useEffect(() => {
+        const prefill = getJson<any | null>(PREFILL_KEY, null);
+        if (prefill) {
+            setForm((prev) => ({
+                ...prev,
+                name: prefill.name || prev.name,
+                email: prefill.email || prev.email,
+                phone: prefill.phone || prev.phone,
+                reason: prefill.reason || prev.reason,
+                date: prefill.date || prev.date,
+            }));
+            setJson(PREFILL_KEY, null);
+        }
+    }, []);
 
     const updateField = (field: keyof typeof form, value: string) => {
         setForm((prev) => ({ ...prev, [field]: value }));
@@ -68,10 +90,38 @@ export default function AppointmentsPage() {
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-12">
-            <h1 className="text-3xl font-bold">Appointments</h1>
-            <p className="mt-2 text-textSecondary">
-                Request a consult and track upcoming visits.
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold">Appointments</h1>
+                    <p className="mt-2 text-textSecondary">
+                        Request a consult and track upcoming visits.
+                    </p>
+                </div>
+                {lastAppointment && (
+                    <button
+                        type="button"
+                        className="rounded-md border border-white/20 px-4 py-2 text-sm text-textSecondary hover:bg-white/10"
+                        onClick={() => {
+                            setJson(PREFILL_KEY, {
+                                name: lastAppointment.name,
+                                email: lastAppointment.email,
+                                phone: lastAppointment.phone,
+                                reason: `Follow-up: ${lastAppointment.reason || "Consultation"}`,
+                                date: "",
+                            });
+                            setForm((prev) => ({
+                                ...prev,
+                                name: lastAppointment.name,
+                                email: lastAppointment.email,
+                                phone: lastAppointment.phone,
+                                reason: `Follow-up: ${lastAppointment.reason || "Consultation"}`,
+                            }));
+                        }}
+                    >
+                        Book again
+                    </button>
+                )}
+            </div>
 
             <form onSubmit={submit} className="mt-6 grid gap-4 rounded-lg border border-white/10 bg-secondary p-6">
                 <div className="grid gap-4 md:grid-cols-2">
@@ -146,6 +196,26 @@ export default function AppointmentsPage() {
                                             <option value="confirmed">Confirmed</option>
                                             <option value="completed">Completed</option>
                                         </select>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setJson(PREFILL_KEY, {
+                                                    name: item.name,
+                                                    email: item.email,
+                                                    phone: item.phone,
+                                                    reason: `Follow-up: ${item.reason || "Consultation"}`,
+                                                    date: "",
+                                                });
+                                                addNotification({
+                                                    title: "Follow-up ready",
+                                                    body: `Prefilled for ${item.name}.`,
+                                                    type: "info",
+                                                });
+                                            }}
+                                            className="rounded-md border border-white/20 px-3 py-1 text-xs text-textSecondary hover:bg-white/10"
+                                        >
+                                            Follow-up
+                                        </button>
                                     </div>
                                 </div>
                                 <div className="mt-2 text-sm text-textSecondary">

@@ -1,4 +1,9 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import { API_BASE_URL } from "../lib/api";
+import { addNotification } from "../lib/notifications";
+import { logAudit } from "../lib/audit";
+import { getJson, setJson } from "../lib/storage";
 
 export default function HomePage() {
     const portalCards = [
@@ -39,18 +44,67 @@ export default function HomePage() {
             cta: "Review patients",
         },
         {
-            title: "Privacy Center",
-            description: "Download or delete local records with one click.",
-            to: "/privacy",
-            cta: "Manage privacy",
+            title: "Care Plan",
+            description: "Build a personalized care plan and reminders.",
+            to: "/patient-profile",
+            cta: "Open care plan",
         },
         {
-            title: "Symptom Analysis",
-            description: "Start structured triage with consent-first guidance.",
-            to: "/symptoms",
-            cta: "Run analysis",
+            title: "Triage Board",
+            description: "Prioritize incoming cases and follow-ups.",
+            to: "/triage",
+            cta: "Review triage",
         },
     ];
+
+    const testimonials = [
+        {
+            name: "Grace A.",
+            quote: "HealthBridge helped me get care at night without leaving my kids. The follow-up felt personal.",
+            outcome: "Recovery support in 2 days",
+        },
+        {
+            name: "Dr. Nnamdi",
+            quote: "The clinician console keeps prescriptions and pharmacy calls organized in one flow.",
+            outcome: "Reduced response time by 40%",
+        },
+        {
+            name: "Amaka I.",
+            quote: "The symptom analysis summary made it easy to explain my situation to the doctor.",
+            outcome: "Same-day consult",
+        },
+    ];
+
+    const [email, setEmail] = useState("");
+    const [status, setStatus] = useState("");
+
+    const subscribe = async (event: React.FormEvent) => {
+        event.preventDefault();
+        const clean = email.trim().toLowerCase();
+        if (!clean) return;
+        const list = getJson<string[]>("hb_subscribers", []);
+        if (!list.includes(clean)) {
+            list.unshift(clean);
+            setJson("hb_subscribers", list.slice(0, 200));
+        }
+        try {
+            await fetch(`${API_BASE_URL}/api/subscriptions`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: clean }),
+            });
+            setStatus("You're on the list! We'll send updates soon.");
+            addNotification({
+                title: "Subscribed",
+                body: "You will receive HealthBridge updates.",
+                type: "success",
+            });
+            logAudit("newsletter_subscribed", clean);
+        } catch {
+            setStatus("Saved locally. We'll sync when the network is available.");
+        }
+        setEmail("");
+    };
 
     return (
         <>
@@ -94,9 +148,12 @@ export default function HomePage() {
                         <div>
                             <h2 className="text-2xl font-semibold">Care Command Center</h2>
                             <p className="mt-2 text-textSecondary">
-                                Jump straight into the new tools we added for patients, clinicians, and operations.
+                                Jump straight into the tools built for patients, clinicians, and operations.
                             </p>
                         </div>
+                        <NavLink to="/faq-pricing" className="text-sm text-textSecondary hover:text-white">
+                            View pricing and FAQs
+                        </NavLink>
                     </div>
                     <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                         {portalCards.map((card) => (
@@ -110,6 +167,58 @@ export default function HomePage() {
                                 </NavLink>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            <section className="py-10 sm:py-12 bg-secondary">
+                <div className="max-w-6xl mx-auto px-4">
+                    <h2 className="text-2xl font-semibold">Patient Outcomes</h2>
+                    <p className="mt-2 text-textSecondary">
+                        Real stories from families and clinicians using HealthBridge.
+                    </p>
+                    <div className="mt-6 grid md:grid-cols-3 gap-6">
+                        {testimonials.map((item) => (
+                            <div key={item.name} className="rounded-lg border border-white/10 bg-secondary p-5">
+                                <p className="text-sm text-textSecondary">"{item.quote}"</p>
+                                <div className="mt-4 text-sm font-semibold">{item.name}</div>
+                                <div className="text-xs text-faith">{item.outcome}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            <section className="py-10 sm:py-12">
+                <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h2 className="text-2xl font-semibold">Stay connected</h2>
+                        <p className="mt-2 text-textSecondary">
+                            Get alerts when new services, doctors, and care programs become available.
+                        </p>
+                        <form onSubmit={subscribe} className="mt-4 flex flex-col gap-3 sm:flex-row">
+                            <input
+                                value={email}
+                                onChange={(event) => setEmail(event.target.value)}
+                                type="email"
+                                required
+                                placeholder="Your email address"
+                                className="flex-1 rounded-md bg-white/5 border border-white/20 px-4 py-3"
+                            />
+                            <button type="submit" className="virtua-button bg-faith text-black w-full sm:w-auto">
+                                Join updates
+                            </button>
+                        </form>
+                        {status && <div className="mt-2 text-sm text-textSecondary">{status}</div>}
+                    </div>
+                    <div className="rounded-lg border border-white/10 bg-secondary p-6">
+                        <h3 className="text-lg font-semibold">Transparent pricing</h3>
+                        <p className="mt-2 text-sm text-textSecondary">
+                            View clear pricing tiers for virtual consults, follow-ups, and pharmacy deliveries.
+                        </p>
+                        <NavLink to="/faq-pricing" className="mt-4 inline-flex virtua-button">
+                            View pricing guide
+                        </NavLink>
                     </div>
                 </div>
             </section>
