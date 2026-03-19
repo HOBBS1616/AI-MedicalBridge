@@ -1,10 +1,12 @@
-import React from 'react';
+import React from "react";
 
 const Logo: React.FC = () => {
     return (
-        <img src="/logo.png" alt="AI + Health Logo" className="h-24 w-auto md:h-32" />
-
-
+        <img
+            src="/brand-lockup.svg"
+            alt="HealthBridge Virtual Hospital"
+            className="h-12 w-auto md:h-14"
+        />
     );
 };
 

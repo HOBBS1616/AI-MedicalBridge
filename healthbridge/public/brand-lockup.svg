@@ -1,0 +1,15 @@
+<svg width="540" height="140" viewBox="0 0 540 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="540" height="140" rx="28" fill="#0f172a"/>
+  <g transform="translate(24 22)">
+    <rect width="96" height="96" rx="22" fill="#0f172a"/>
+    <circle cx="48" cy="48" r="34" fill="#10b981"/>
+    <rect x="43" y="24" width="10" height="48" rx="5" fill="#f8fafc"/>
+    <rect x="24" y="43" width="48" height="10" rx="5" fill="#f8fafc"/>
+    <path d="M22 62H34L40 56L47 70L54 62H74" stroke="#facc15" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(150 38)">
+    <text x="0" y="36" font-family="Segoe UI, Arial, sans-serif" font-size="36" font-weight="700" fill="#f8fafc">HealthBridge</text>
+    <text x="0" y="64" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#cbd5e1" letter-spacing="2">VIRTUAL HOSPITAL</text>
+    <text x="0" y="92" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#94a3b8">Faith-centered care, delivered digitally.</text>
+  </g>
+</svg>
