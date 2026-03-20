@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+﻿import { NavLink, Outlet } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Logo from "./components/Logo";
@@ -17,35 +17,81 @@ export default function App() {
   const { i18n } = useTranslation();
   const [user, setUser] = useState(getCurrentUser());
 
-  const primaryLinks = useMemo<NavItem[]>(
+  const publicPrimary = useMemo<NavItem[]>(
     () => [
       { to: "/", label: "Home", end: true },
-      { to: "/dashboard", label: "Dashboard" },
       { to: "/services", label: "Services" },
-      { to: "/symptoms", label: "Symptom Analysis" },
       { to: "/find-doctor", label: "Find a Doctor" },
       { to: "/locations", label: "Locations" },
     ],
     []
   );
 
-  const secondaryLinks = useMemo<NavItem[]>(
+  const publicSecondary = useMemo<NavItem[]>(
     () => [
       { to: "/patients-visitors", label: "Patients & Visitors" },
-      { to: "/about", label: "About" },
-      { to: "/patient-profile", label: "Care Plan" },
-      { to: "/triage", label: "Triage Board" },
-      { to: "/patients", label: "Patients" },
-      { to: "/appointments", label: "Appointments" },
-      { to: "/messages", label: "Messages" },
-      { to: "/clinician", label: "Clinician" },
-      { to: "/delivery", label: "Delivery" },
       { to: "/faq-pricing", label: "FAQ & Pricing" },
+      { to: "/about", label: "About" },
       { to: "/share", label: "Share" },
-      { to: "/privacy", label: "Privacy" },
     ],
     []
   );
+
+  const patientPrimary = useMemo<NavItem[]>(
+    () => [
+      { to: "/dashboard", label: "Dashboard" },
+      { to: "/symptoms", label: "Symptom Analysis" },
+      { to: "/appointments", label: "Appointments" },
+      { to: "/messages", label: "Messages" },
+      { to: "/patient-profile", label: "Care Plan" },
+    ],
+    []
+  );
+
+  const patientSecondary = useMemo<NavItem[]>(
+    () => [
+      { to: "/delivery", label: "Delivery" },
+      { to: "/privacy", label: "Privacy" },
+      { to: "/faq-pricing", label: "FAQ & Pricing" },
+      { to: "/share", label: "Share" },
+    ],
+    []
+  );
+
+  const clinicianPrimary = useMemo<NavItem[]>(
+    () => [
+      { to: "/dashboard", label: "Dashboard" },
+      { to: "/triage", label: "Triage Board" },
+      { to: "/patients", label: "Patients" },
+      { to: "/clinician", label: "Clinician" },
+      { to: "/appointments", label: "Appointments" },
+    ],
+    []
+  );
+
+  const clinicianSecondary = useMemo<NavItem[]>(
+    () => [
+      { to: "/messages", label: "Messages" },
+      { to: "/delivery", label: "Delivery" },
+      { to: "/privacy", label: "Privacy" },
+      { to: "/faq-pricing", label: "FAQ & Pricing" },
+      { to: "/share", label: "Share" },
+    ],
+    []
+  );
+
+  const primaryLinks = useMemo(() => {
+    if (!user) return publicPrimary;
+    if (user.role === "patient") return patientPrimary;
+    const adminExtra = user.role === "admin" ? [{ to: "/records", label: "Records" }] : [];
+    return [...clinicianPrimary, ...adminExtra];
+  }, [user, publicPrimary, patientPrimary, clinicianPrimary]);
+
+  const secondaryLinks = useMemo(() => {
+    if (!user) return publicSecondary;
+    if (user.role === "patient") return patientSecondary;
+    return clinicianSecondary;
+  }, [user, publicSecondary, patientSecondary, clinicianSecondary]);
 
   useEffect(() => {
     const sync = () => setUser(getCurrentUser());
@@ -66,6 +112,8 @@ export default function App() {
       ? `${base} text-white/80 hover:text-white hover:bg-white/5`
       : `${base} text-textSecondary hover:text-white hover:bg-white/5`;
   };
+
+  const showRegister = !user || user.role !== "patient";
 
   return (
     <div className="min-h-screen flex flex-col bg-primary text-white">
@@ -113,7 +161,9 @@ export default function App() {
               </select>
 
               <NavLink to="/get-care-now" className="virtua-button">Get Care Now</NavLink>
-              <NavLink to="/register" className="virtua-button bg-faith text-black">Register</NavLink>
+              {showRegister && (
+                <NavLink to="/register" className="virtua-button bg-faith text-black">Register</NavLink>
+              )}
             </div>
           </div>
 
