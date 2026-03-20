@@ -80,14 +80,14 @@ export default function App() {
     []
   );
 
-  const primaryLinks = useMemo(() => {
+  const primaryLinks = useMemo<NavItem[]>(() => {
     if (!user) return publicPrimary;
     if (user.role === "patient") return patientPrimary;
-    const adminExtra = user.role === "admin" ? [{ to: "/records", label: "Records" }] : [];
+    const adminExtra: NavItem[] = user.role === "admin" ? [{ to: "/records", label: "Records" }] : [];
     return [...clinicianPrimary, ...adminExtra];
   }, [user, publicPrimary, patientPrimary, clinicianPrimary]);
 
-  const secondaryLinks = useMemo(() => {
+  const secondaryLinks = useMemo<NavItem[]>(() => {
     if (!user) return publicSecondary;
     if (user.role === "patient") return patientSecondary;
     return clinicianSecondary;
