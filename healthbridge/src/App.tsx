@@ -35,6 +35,7 @@ export default function App() {
       { to: "/find-doctor", label: "Find a Doctor" },
       { to: "/patients-visitors", label: "Patients & Visitors" },
       { to: "/faq-pricing", label: "FAQ & Pricing" },
+      { to: "/hmo-coverage", label: "HMO & Coverage" },
       { to: "/share", label: "Share" },
     ],
     []
@@ -56,6 +57,7 @@ export default function App() {
       { to: "/emergency", label: "Emergency" },
       { to: "/delivery", label: "Delivery" },
       { to: "/faq-pricing", label: "FAQ & Pricing" },
+      { to: "/hmo-coverage", label: "HMO & Coverage" },
       { to: "/privacy", label: "Privacy" },
       { to: "/share", label: "Share" },
     ],

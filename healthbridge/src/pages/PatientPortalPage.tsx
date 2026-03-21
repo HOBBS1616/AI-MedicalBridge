@@ -78,6 +78,12 @@ export default function PatientPortalPage() {
             cta: "Request help",
         },
         {
+            title: "HMO & coverage",
+            description: "Verify eligibility and download a coverage summary.",
+            to: "/hmo-coverage",
+            cta: "Check coverage",
+        },
+        {
             title: "Delivery tracking",
             description: "Track pharmacy deliveries and expected arrival.",
             to: "/delivery",

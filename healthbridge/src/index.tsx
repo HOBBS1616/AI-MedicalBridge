@@ -33,6 +33,7 @@ import PatientPortalPage from "./pages/PatientPortalPage";
 import StaffPortalPage from "./pages/StaffPortalPage";
 import EmergencyRequestPage from "./pages/EmergencyRequestPage";
 import EmergencyQueuePage from "./pages/EmergencyQueuePage";
+import HmoCoveragePage from "./pages/HmoCoveragePage";
 import RequireRole from "./components/RequireRole";
 
 initErrorTracking();
@@ -53,6 +54,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="virtual-consult" element={<VirtualConsultPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="login" element={<LoginPage />} />
+          <Route path="hmo-coverage" element={<HmoCoveragePage />} />
           <Route
             path="patients"
             element={
