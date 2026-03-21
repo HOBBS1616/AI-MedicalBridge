@@ -5,6 +5,7 @@ import Logo from "./components/Logo";
 import NotificationsPanel from "./components/NotificationsPanel";
 import StatusBanner from "./components/StatusBanner";
 import ContactButtons from "./components/ContactButtons";
+import TelemedicineBot from "./components/TelemedicineBot";
 import { clearCurrentUser, getCurrentUser } from "./lib/auth";
 
 type NavItem = {
@@ -16,22 +17,23 @@ type NavItem = {
 export default function App() {
   const { i18n } = useTranslation();
   const [user, setUser] = useState(getCurrentUser());
+  const isStaff = user?.role === "doctor" || user?.role === "admin";
 
   const publicPrimary = useMemo<NavItem[]>(
     () => [
       { to: "/", label: "Home", end: true },
       { to: "/services", label: "Services" },
-      { to: "/find-doctor", label: "Find a Doctor" },
       { to: "/locations", label: "Locations" },
+      { to: "/about", label: "About" },
     ],
     []
   );
 
   const publicSecondary = useMemo<NavItem[]>(
     () => [
+      { to: "/find-doctor", label: "Find a Doctor" },
       { to: "/patients-visitors", label: "Patients & Visitors" },
       { to: "/faq-pricing", label: "FAQ & Pricing" },
-      { to: "/about", label: "About" },
       { to: "/share", label: "Share" },
     ],
     []
@@ -39,43 +41,43 @@ export default function App() {
 
   const patientPrimary = useMemo<NavItem[]>(
     () => [
-      { to: "/dashboard", label: "Dashboard" },
-      { to: "/symptoms", label: "Symptom Analysis" },
+      { to: "/patient", label: "Patient Portal" },
       { to: "/appointments", label: "Appointments" },
-      { to: "/messages", label: "Messages" },
+      { to: "/symptoms", label: "Symptom Analysis" },
       { to: "/patient-profile", label: "Care Plan" },
+      { to: "/messages", label: "Messages" },
     ],
     []
   );
 
   const patientSecondary = useMemo<NavItem[]>(
     () => [
+      { to: "/emergency", label: "Emergency" },
       { to: "/delivery", label: "Delivery" },
-      { to: "/privacy", label: "Privacy" },
       { to: "/faq-pricing", label: "FAQ & Pricing" },
+      { to: "/privacy", label: "Privacy" },
       { to: "/share", label: "Share" },
     ],
     []
   );
 
-  const clinicianPrimary = useMemo<NavItem[]>(
+  const staffPrimary = useMemo<NavItem[]>(
     () => [
+      { to: "/staff", label: "Staff Portal" },
       { to: "/dashboard", label: "Dashboard" },
       { to: "/triage", label: "Triage Board" },
       { to: "/patients", label: "Patients" },
       { to: "/clinician", label: "Clinician" },
-      { to: "/appointments", label: "Appointments" },
     ],
     []
   );
 
-  const clinicianSecondary = useMemo<NavItem[]>(
+  const staffSecondary = useMemo<NavItem[]>(
     () => [
+      { to: "/emergency-queue", label: "Emergency Queue" },
       { to: "/messages", label: "Messages" },
       { to: "/delivery", label: "Delivery" },
       { to: "/privacy", label: "Privacy" },
-      { to: "/faq-pricing", label: "FAQ & Pricing" },
-      { to: "/share", label: "Share" },
     ],
     []
   );
@@ -83,15 +85,15 @@ export default function App() {
   const primaryLinks = useMemo<NavItem[]>(() => {
     if (!user) return publicPrimary;
     if (user.role === "patient") return patientPrimary;
-    const adminExtra: NavItem[] = user.role === "admin" ? [{ to: "/records", label: "Records" }] : [];
-    return [...clinicianPrimary, ...adminExtra];
-  }, [user, publicPrimary, patientPrimary, clinicianPrimary]);
+    return staffPrimary;
+  }, [user, publicPrimary, patientPrimary, staffPrimary]);
 
   const secondaryLinks = useMemo<NavItem[]>(() => {
     if (!user) return publicSecondary;
     if (user.role === "patient") return patientSecondary;
-    return clinicianSecondary;
-  }, [user, publicSecondary, patientSecondary, clinicianSecondary]);
+    const adminExtra: NavItem[] = user.role === "admin" ? [{ to: "/records", label: "Records" }] : [];
+    return [...staffSecondary, ...adminExtra];
+  }, [user, publicSecondary, patientSecondary, staffSecondary]);
 
   useEffect(() => {
     const sync = () => setUser(getCurrentUser());
@@ -113,7 +115,11 @@ export default function App() {
       : `${base} text-textSecondary hover:text-white hover:bg-white/5`;
   };
 
-  const showRegister = !user || user.role !== "patient";
+  const cta = !user
+    ? { to: "/get-care-now", label: "Get Care Now" }
+    : isStaff
+      ? { to: "/triage", label: "Open Triage" }
+      : { to: "/appointments", label: "Book Appointment" };
 
   return (
     <div className="min-h-screen flex flex-col bg-primary text-white">
@@ -160,9 +166,11 @@ export default function App() {
                 <option value="es">ES</option>
               </select>
 
-              <NavLink to="/get-care-now" className="virtua-button">Get Care Now</NavLink>
-              {showRegister && (
-                <NavLink to="/register" className="virtua-button bg-faith text-black">Register</NavLink>
+              <NavLink to={cta.to} className="virtua-button bg-faith text-black">
+                {cta.label}
+              </NavLink>
+              {!user && (
+                <NavLink to="/register" className="virtua-button">Register</NavLink>
               )}
             </div>
           </div>
@@ -211,6 +219,7 @@ export default function App() {
         </div>
       </footer>
       <ContactButtons />
+      <TelemedicineBot />
     </div>
   );
 }

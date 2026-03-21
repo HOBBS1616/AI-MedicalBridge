@@ -30,6 +30,7 @@ const authCodes = new Map(); // email -> { email, code, expiresAt, name }
 const sessions = new Map(); // token -> { email, name, role }
 const errorLogs = [];
 const subscriptions = [];
+const emergencyRequests = [];
 
 // Create mail transporter (uses Ethereal dev inbox if SMTP not configured)
 async function createTransporter() {
@@ -114,6 +115,18 @@ const subscriptionSchema = Joi.object({
     email: Joi.string().email().required()
 });
 
+const emergencyRequestSchema = Joi.object({
+    name: Joi.string().required(),
+    phone: Joi.string().required(),
+    location: Joi.string().required(),
+    urgency: Joi.string().valid("critical", "high", "medium", "low").required(),
+    symptoms: Joi.string().required()
+});
+
+const emergencyUpdateSchema = Joi.object({
+    status: Joi.string().valid("pending", "assigned", "dispatched", "resolved").required()
+});
+
 // NEW: Patient registration schema
 const patientSchema = Joi.object({
     name: Joi.string().required(),
@@ -142,6 +155,7 @@ async function loadState() {
         (data.errorLogs || []).forEach((record) => errorLogs.push(record));
         (data.subscriptions || []).forEach((record) => subscriptions.push(record));
         (data.authCodes || []).forEach((record) => authCodes.set(record.email, record));
+        (data.emergencyRequests || []).forEach((record) => emergencyRequests.push(record));
         console.log("Persisted backend data loaded.");
     } catch (err) {
         console.log("No persisted data found. Starting fresh.");
@@ -157,6 +171,7 @@ async function persistState() {
         errorLogs,
         subscriptions,
         authCodes: [...authCodes.values()],
+        emergencyRequests,
     };
     try {
         await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2));
@@ -209,6 +224,37 @@ app.post("/api/patients/register", (req, res) => {
 // Optional: list all patients (for testing)
 app.get("/api/patients", (req, res) => {
     res.json([...patients.values()]);
+});
+
+// Emergency request
+app.post("/api/emergency-requests", (req, res) => {
+    const { error, value } = emergencyRequestSchema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.message });
+    const record = {
+        id: id(),
+        ...value,
+        status: "pending",
+        createdAt: new Date().toISOString()
+    };
+    emergencyRequests.unshift(record);
+    if (emergencyRequests.length > 500) emergencyRequests.pop();
+    logAudit("emergency_request_created", `${record.name} - ${record.location}`);
+    schedulePersist();
+    res.status(201).json({ request: record });
+});
+
+app.get("/api/emergency-requests", (req, res) => {
+    res.json(emergencyRequests);
+});
+
+app.patch("/api/emergency-requests/:id", (req, res) => {
+    const { error, value } = emergencyUpdateSchema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.message });
+    const record = emergencyRequests.find((item) => item.id === req.params.id);
+    if (!record) return res.status(404).json({ error: "Request not found" });
+    record.status = value.status;
+    schedulePersist();
+    res.json({ request: record });
 });
 
 // Auth: request email code

@@ -29,6 +29,10 @@ import PatientProfilePage from "./pages/PatientProfilePage";
 import TriageBoardPage from "./pages/TriageBoardPage";
 import FaqPricingPage from "./pages/FaqPricingPage";
 import SharePage from "./pages/SharePage";
+import PatientPortalPage from "./pages/PatientPortalPage";
+import StaffPortalPage from "./pages/StaffPortalPage";
+import EmergencyRequestPage from "./pages/EmergencyRequestPage";
+import EmergencyQueuePage from "./pages/EmergencyQueuePage";
 import RequireRole from "./components/RequireRole";
 
 initErrorTracking();
@@ -49,7 +53,14 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="virtual-consult" element={<VirtualConsultPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="login" element={<LoginPage />} />
-          <Route path="patients" element={<PatientListPage />} />
+          <Route
+            path="patients"
+            element={
+              <RequireRole roles={["doctor", "admin"]}>
+                <PatientListPage />
+              </RequireRole>
+            }
+          />
           <Route
             path="records"
             element={
@@ -58,7 +69,14 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               </RequireRole>
             }
           />
-          <Route path="dashboard" element={<DashboardPage />} />
+          <Route
+            path="dashboard"
+            element={
+              <RequireRole roles={["doctor", "admin"]}>
+                <DashboardPage />
+              </RequireRole>
+            }
+          />
           <Route path="appointments" element={<AppointmentsPage />} />
           <Route path="messages" element={<MessagesPage />} />
           <Route
@@ -71,6 +89,31 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           />
           <Route path="delivery" element={<DeliveryTrackingPage />} />
           <Route path="privacy" element={<PrivacyPage />} />
+          <Route
+            path="patient"
+            element={
+              <RequireRole roles={["patient"]}>
+                <PatientPortalPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="staff"
+            element={
+              <RequireRole roles={["doctor", "admin"]}>
+                <StaffPortalPage />
+              </RequireRole>
+            }
+          />
+          <Route path="emergency" element={<EmergencyRequestPage />} />
+          <Route
+            path="emergency-queue"
+            element={
+              <RequireRole roles={["doctor", "admin"]}>
+                <EmergencyQueuePage />
+              </RequireRole>
+            }
+          />
           <Route path="patient-profile" element={<PatientProfilePage />} />
           <Route
             path="triage"
