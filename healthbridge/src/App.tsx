@@ -125,9 +125,9 @@ export default function App() {
   }, []);
 
   const navClass = (active: boolean, tone: "primary" | "secondary") => {
-    const base = "rounded-full px-3 py-1.5 text-sm transition";
+    const base = "nav-link rounded-full px-3 py-1.5 text-sm transition";
     if (active) {
-      return `${base} bg-white/10 text-white`;
+      return `${base} active bg-white/10 text-white`;
     }
     return tone === "primary"
       ? `${base} text-white/80 hover:text-white hover:bg-white/5`
@@ -225,7 +225,9 @@ export default function App() {
         </header>
 
         <main id="main-content" className="flex-1 pb-12">
-          <Outlet />
+          <div key={location.pathname} className="page-transition">
+            <Outlet />
+          </div>
         </main>
 
         <footer className="border-t border-white/10">
