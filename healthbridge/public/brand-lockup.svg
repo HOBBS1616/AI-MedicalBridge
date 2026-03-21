@@ -2,10 +2,11 @@
   <rect width="540" height="140" rx="28" fill="#0f172a"/>
   <g transform="translate(24 22)">
     <rect width="96" height="96" rx="22" fill="#0f172a"/>
-    <circle cx="48" cy="48" r="34" fill="#10b981"/>
-    <rect x="43" y="24" width="10" height="48" rx="5" fill="#f8fafc"/>
-    <rect x="24" y="43" width="48" height="10" rx="5" fill="#f8fafc"/>
-    <path d="M22 62H34L40 56L47 70L54 62H74" stroke="#facc15" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="48" cy="48" r="34" stroke="#22d3ee" stroke-width="6" fill="none"/>
+    <path d="M18 58Q48 30 78 58" stroke="#10b981" stroke-width="6" stroke-linecap="round" fill="none"/>
+    <rect x="26" y="58" width="8" height="18" rx="4" fill="#f8fafc"/>
+    <rect x="62" y="58" width="8" height="18" rx="4" fill="#f8fafc"/>
+    <path d="M20 46H32L38 38L46 58L54 46H76" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
   <g transform="translate(150 38)">
     <text x="0" y="36" font-family="Segoe UI, Arial, sans-serif" font-size="36" font-weight="700" fill="#f8fafc">HealthBridge</text>
