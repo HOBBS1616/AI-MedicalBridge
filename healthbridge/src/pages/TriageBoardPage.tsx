@@ -49,16 +49,20 @@ export default function TriageBoardPage() {
             contact: item.email,
         }));
 
-        const symptomItems = symptoms.map((item) => ({
+        const symptomItems = symptoms.map((item) => {
+            const priority: Priority =
+                item?.redFlag || item?.severity === "Severe" ? "high" : "medium";
+            return {
             id: `sym-${item.id}`,
             source: "Symptom Analysis",
             name: item.patientName || "Guest patient",
             reason: item.summary || item.chiefComplaint || "Symptom analysis completed",
             createdAt: item.createdAt,
-            priority: item.redFlag ? "high" : item.severity === "Severe" ? "high" : "medium",
+            priority,
             status: "new" as Status,
             contact: item.email,
-        }));
+            };
+        });
 
         const messageItems = messages.map((item) => ({
             id: `msg-${item.id}`,
