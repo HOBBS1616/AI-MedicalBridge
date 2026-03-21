@@ -33,7 +33,7 @@ export default function TriageBoardPage() {
         () => getJson<Record<string, TriageOverride>>(OVERRIDE_KEY, {})
     );
 
-    const items = useMemo<TriageItem[]>(() => {
+    const items = useMemo((): TriageItem[] => {
         const appts = getJson<any[]>("hb_appointments", []);
         const symptoms = getJson<any[]>("hb_symptom_logs", []);
         const messages = getJson<any[]>("hb_messages", []);
