@@ -44,6 +44,12 @@ export default function HomePage() {
             cta: "View FAQs",
         },
         {
+            title: "Trust & Safety",
+            description: "Learn about compliance, privacy, and clinical safety standards.",
+            to: "/trust",
+            cta: "Explore trust",
+        },
+        {
             title: "Share HealthBridge",
             description: "Invite family and friends to trusted virtual care.",
             to: "/share",

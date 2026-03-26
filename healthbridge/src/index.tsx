@@ -34,6 +34,7 @@ import StaffPortalPage from "./pages/StaffPortalPage";
 import EmergencyRequestPage from "./pages/EmergencyRequestPage";
 import EmergencyQueuePage from "./pages/EmergencyQueuePage";
 import HmoCoveragePage from "./pages/HmoCoveragePage";
+import TrustSafetyPage from "./pages/TrustSafetyPage";
 import RequireRole from "./components/RequireRole";
 
 initErrorTracking();
@@ -55,6 +56,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="register" element={<RegisterPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="hmo-coverage" element={<HmoCoveragePage />} />
+          <Route path="trust" element={<TrustSafetyPage />} />
           <Route
             path="patients"
             element={

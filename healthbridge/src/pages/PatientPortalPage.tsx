@@ -84,6 +84,12 @@ export default function PatientPortalPage() {
             cta: "Check coverage",
         },
         {
+            title: "Trust & safety",
+            description: "Understand privacy, consent, and care standards.",
+            to: "/trust",
+            cta: "View trust",
+        },
+        {
             title: "Delivery tracking",
             description: "Track pharmacy deliveries and expected arrival.",
             to: "/delivery",
