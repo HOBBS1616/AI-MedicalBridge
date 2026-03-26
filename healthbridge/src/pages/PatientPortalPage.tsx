@@ -78,6 +78,18 @@ export default function PatientPortalPage() {
             cta: "Request help",
         },
         {
+            title: "Tests & labs",
+            description: "Request home sample pickup or lab partner testing.",
+            to: "/tests",
+            cta: "Request test",
+        },
+        {
+            title: "Nurse home visit",
+            description: "Schedule a nurse for in-home support.",
+            to: "/nurse-visit",
+            cta: "Book nurse",
+        },
+        {
             title: "HMO & coverage",
             description: "Verify eligibility and download a coverage summary.",
             to: "/hmo-coverage",

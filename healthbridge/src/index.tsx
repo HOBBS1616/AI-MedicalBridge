@@ -35,6 +35,10 @@ import EmergencyRequestPage from "./pages/EmergencyRequestPage";
 import EmergencyQueuePage from "./pages/EmergencyQueuePage";
 import HmoCoveragePage from "./pages/HmoCoveragePage";
 import TrustSafetyPage from "./pages/TrustSafetyPage";
+import LabRequestPage from "./pages/LabRequestPage";
+import LabQueuePage from "./pages/LabQueuePage";
+import NurseVisitPage from "./pages/NurseVisitPage";
+import NurseDispatchPage from "./pages/NurseDispatchPage";
 import RequireRole from "./components/RequireRole";
 
 initErrorTracking();
@@ -57,6 +61,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="login" element={<LoginPage />} />
           <Route path="hmo-coverage" element={<HmoCoveragePage />} />
           <Route path="trust" element={<TrustSafetyPage />} />
+          <Route path="tests" element={<LabRequestPage />} />
+          <Route path="nurse-visit" element={<NurseVisitPage />} />
           <Route
             path="patients"
             element={
@@ -115,6 +121,22 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             element={
               <RequireRole roles={["doctor", "admin"]}>
                 <EmergencyQueuePage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="lab-queue"
+            element={
+              <RequireRole roles={["doctor", "admin"]}>
+                <LabQueuePage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="nurse-dispatch"
+            element={
+              <RequireRole roles={["doctor", "admin"]}>
+                <NurseDispatchPage />
               </RequireRole>
             }
           />

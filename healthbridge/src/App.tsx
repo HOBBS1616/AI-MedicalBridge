@@ -57,6 +57,8 @@ export default function App() {
     () => [
       { to: "/emergency", label: "Emergency" },
       { to: "/delivery", label: "Delivery" },
+      { to: "/tests", label: "Tests & Labs" },
+      { to: "/nurse-visit", label: "Nurse Visit" },
       { to: "/faq-pricing", label: "FAQ & Pricing" },
       { to: "/trust", label: "Trust & Safety" },
       { to: "/hmo-coverage", label: "HMO & Coverage" },
@@ -80,6 +82,8 @@ export default function App() {
   const staffSecondary = useMemo<NavItem[]>(
     () => [
       { to: "/emergency-queue", label: "Emergency Queue" },
+      { to: "/lab-queue", label: "Lab Queue" },
+      { to: "/nurse-dispatch", label: "Nurse Dispatch" },
       { to: "/messages", label: "Messages" },
       { to: "/delivery", label: "Delivery" },
       { to: "/privacy", label: "Privacy" },
@@ -105,13 +109,16 @@ export default function App() {
     if (path.startsWith("/patient")) return "bg-patient";
     if (path.startsWith("/symptoms")) return "bg-symptoms";
     if (path.startsWith("/emergency")) return "bg-emergency";
+    if (path.startsWith("/tests") || path.startsWith("/nurse-visit")) return "bg-patient";
     if (
       path.startsWith("/staff") ||
       path.startsWith("/dashboard") ||
       path.startsWith("/triage") ||
       path.startsWith("/patients") ||
       path.startsWith("/records") ||
-      path.startsWith("/clinician")
+      path.startsWith("/clinician") ||
+      path.startsWith("/lab-queue") ||
+      path.startsWith("/nurse-dispatch")
     ) {
       return "bg-staff";
     }

@@ -29,6 +29,18 @@ export default function StaffPortalPage() {
             cta: "Open queue",
         },
         {
+            title: "Lab request queue",
+            description: "Review incoming test requests and confirm scheduling.",
+            to: "/lab-queue",
+            cta: "Open lab queue",
+        },
+        {
+            title: "Nurse dispatch",
+            description: "Assign nurses to home visits and monitor status.",
+            to: "/nurse-dispatch",
+            cta: "Open dispatch",
+        },
+        {
             title: "Operations dashboard",
             description: "Monitor counts, audit logs, and public status banners.",
             to: "/dashboard",

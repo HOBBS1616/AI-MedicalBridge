@@ -32,6 +32,18 @@ export default function HomePage() {
             cta: "Request help",
         },
         {
+            title: "Tests & Labs",
+            description: "Request home sample pickup or lab partner testing.",
+            to: "/tests",
+            cta: "Request test",
+        },
+        {
+            title: "Nurse Home Visit",
+            description: "Schedule a nurse to support recovery at home.",
+            to: "/nurse-visit",
+            cta: "Book nurse",
+        },
+        {
             title: "Staff Portal",
             description: "Clinician and admin tools for triage, approvals, and operations.",
             to: "/staff",
