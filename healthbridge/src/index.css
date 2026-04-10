@@ -126,17 +126,63 @@
 }
 
 .page-transition {
-    animation: page-in 0.45s ease-out;
+    --page-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --page-duration: 0.55s;
+    animation: page-in var(--page-duration) var(--page-ease);
+    will-change: opacity, transform, filter;
+    transform-origin: top center;
 }
+
+.page-transition > * {
+    transform-origin: top center;
+}
+
+.page-transition > * > * {
+    --stagger-delay: 80ms;
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+    filter: blur(4px);
+    animation: stagger-in 0.55s var(--page-ease) forwards;
+    animation-delay: calc(var(--stagger-index, 0) * 70ms + var(--stagger-delay));
+    will-change: opacity, transform, filter;
+}
+
+.page-transition > * > *:nth-child(1) { --stagger-index: 0; }
+.page-transition > * > *:nth-child(2) { --stagger-index: 1; }
+.page-transition > * > *:nth-child(3) { --stagger-index: 2; }
+.page-transition > * > *:nth-child(4) { --stagger-index: 3; }
+.page-transition > * > *:nth-child(5) { --stagger-index: 4; }
+.page-transition > * > *:nth-child(6) { --stagger-index: 5; }
+.page-transition > * > *:nth-child(7) { --stagger-index: 6; }
+.page-transition > * > *:nth-child(8) { --stagger-index: 7; }
+.page-transition > * > *:nth-child(9) { --stagger-index: 8; }
+.page-transition > * > *:nth-child(10) { --stagger-index: 9; }
+.page-transition > * > *:nth-child(11) { --stagger-index: 10; }
+.page-transition > * > *:nth-child(12) { --stagger-index: 11; }
 
 @keyframes page-in {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(12px) scale(0.985);
+        filter: blur(8px);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes stagger-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.985);
+        filter: blur(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
     }
 }
 
@@ -150,6 +196,8 @@
         animation: none !important;
         transition: none !important;
         transform: none !important;
+        filter: none !important;
+        opacity: 1 !important;
     }
 }
 
